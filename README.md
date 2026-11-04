@@ -1,66 +1,65 @@
-LogiMetric: Intelligent Fleet Telemetry & Predictive Maintenance
+# LogiMetric: Intelligent Fleet Telemetry & Predictive Maintenance
 
-O LogiMetric é uma plataforma avançada de gestão logística e telemetria invisível. O projeto tem como foco a eliminação do atrito operacional decorrente do fator humano, automatizando a captura de dados de geolocalização e o cálculo de desgaste mecânico de frotas de forma estritamente autônoma.
+![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow)
+![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-Backend-black?logo=flask)
+![MongoDB](https://img.shields.io/badge/MongoDB-GeoSpatial-47A248?logo=mongodb&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-Prototipagem-F24E1E?logo=figma&logoColor=white)
 
-O Problema e a Solução
+> O LogiMetric é uma plataforma avançada de gestão logística e telemetria invisível. O projeto foca na eliminação de atrito operacional (fator humano) ao capturar dados de geolocalização e calcular o desgaste mecânico de frotas de forma 100% autônoma.
 
-Sistemas logísticos tradicionais apresentam falhas críticas ao dependerem da intervenção manual do motorista para iniciar o rastreamento via aplicativo. Esta abordagem não apenas compromete a integridade dos dados coletados, mas também gera potenciais passivos trabalhistas ao invadir a privacidade do colaborador fora do seu turno de trabalho.
+---
 
-O LogiMetric soluciona esta lacuna tecnológica através de uma integração baseada em comunicação Bluetooth/OBD-II:
-O aplicativo móvel opera em estado de suspensão (consumo mínimo de bateria). Ao detectar o pareamento físico com o rastreador ou sistema nativo do veículo corporativo, o sistema é ativado e inicia a coleta contínua de coordenadas de alta precisão, transmitindo-as ao servidor central. O término do processo de rastreamento ocorre de maneira imediata e automática assim que o veículo é desligado.
+##  O Problema e a Solução
 
-Arquitetura de Dados e Tecnologias
+Sistemas tradicionais de logística falham quando dependem que o motorista abra um aplicativo e inicie manualmente a rota. Além de gerar falhas de dados, isso invade a privacidade do colaborador fora do horário de trabalho.
 
-A infraestrutura do sistema foi concebida para suportar alta volumetria de requisições concorrentes e executar cálculos espaciais complexos em tempo real.
+O **LogiMetric** resolve isso através de um **"Aperto de Mão via Bluetooth/OBD-II"**:
+O aplicativo móvel permanece adormecido (consumo zero de bateria). Ao detectar a conexão física com o rastreador ou rádio do caminhão, o sistema desperta, inicia a coleta de coordenadas de alta precisão e as envia para o backend. Ao desligar o veículo, o rastreio cessa imediatamente.
 
-Backend e Inteligência (Motor de Desgaste)
+---
 
-Python e Flask: Estrutura de alta performance para o roteamento e processamento de dados massivos de telemetria.
+##  Arquitetura de Dados e Tecnologias
 
-Pydantic: Camada estrita de validação de dados, garantindo que os payloads recebidos estejam em conformidade absoluta com o padrão GeoJSON (Longitude, Latitude).
+A base do sistema foi arquitetada para suportar alta volumetria de requisições e cálculos espaciais em tempo real.
 
-Worker em Background: Algoritmo dedicado à conversão de pontos individuais de GPS em trajetórias contínuas (LineStrings). Aplica modelos matemáticos que consideram relevo, distância percorrida e variação de velocidade para calcular índices de degradação mecânica.
+### Backend & Inteligência (Motor de Desgaste)
+*   **Python + Flask:** Estrutura ágil para o roteamento e recebimento massivo de *pings* de telemetria.
+*   **Pydantic:** Alfândega de dados estrita, garantindo a conversão de *payloads* perfeitamente alinhados ao padrão GeoJSON (Longitude, Latitude).
+*   **Worker em Background:** Algoritmo que converte pontos de GPS individuais em trajetórias (`LineStrings`) e aplica multiplicadores matemáticos baseados em relevo, distância e velocidade para prever a degradação mecânica.
 
-Banco de Dados (Geoespacial)
+### Banco de Dados (Geoespacial)
+*   **MongoDB:** Utilização de índices `2dsphere` para viabilizar cálculos matemáticos considerando a curvatura esférica da terra.
+*   **Operadores Nativos:** Uso intensivo de consultas como `$near` (raios de distância) e `$geoWithin` (intersecção entre trajetos e polígonos de centros de distribuição).
 
-MongoDB: Implementação de índices 2dsphere para viabilizar cálculos trigonométricos que consideram a curvatura da Terra.
+### Frontend & Mobile
+*   **App Mobile (Coletor):** Background Location API + BLE Listener (Bluetooth Low Energy).
+*   **Dashboard Gestor (Web):** Painel de controle para acompanhamento de KPIs logísticos, mapa interativo de frota e tabela crítica de manutenções preditivas.
 
-Operadores Nativos: Utilização de consultas geoespaciais avançadas, como $near (busca por raio) e $geoWithin (intersecção entre trajetos e polígonos delimitadores de centros de distribuição).
+---
 
-Frontend e Mobile
+## Fase Atual do Projeto
 
-Aplicação Mobile (Coletor): Utilização das APIs nativas de Background Location integradas ao BLE Listener (Bluetooth Low Energy).
+Este projeto está atualmente na fase de **Design de Arquitetura e Planejamento**.
+*   **Prototipação UI/UX:** [Link para o Figma]
+*   **Backlog e Tarefas:** [Link para o Quadro no Jira]
+*   **Código-fonte:** (Início do desenvolvimento em breve)
 
-Dashboard Gerencial (Web): Interface de controle para monitoramento de KPIs operacionais, visualização espacial da frota e gestão de fila de manutenção preditiva.
+---
 
-Fase Atual do Projeto
+##  Fluxo de Funcionamento (Pipeline de Dados)
 
-Este projeto encontra-se atualmente na fase de Design de Arquitetura e Planejamento.
+1.  **Hardware Gatilho:** Motorista liga o caminhão (Rádio/OBD-II emite sinal BLE).
+2.  **Captura (Mobile):** App desperta em *background* e coleta arrays de coordenadas GPS.
+3.  **Validação (API):** Flask recebe o pacote e Pydantic valida o GeoJSON estrito.
+4.  **Persistência (DB):** MongoDB indexa a localização atual no mapa global.
+5.  **Análise (Worker):** Ao fim do dia, o sistema calcula a distância real percorrida e gera o "Score de Desgaste".
+6.  **Alerta (Dashboard):** Caminhões que ultrapassam o limite de desgaste aparecem no painel do gestor como "Revisão Necessária".
 
-Prototipação UI/UX: [Inserir Link para o Figma]
+---
 
-Backlog e Especificações Técnicas: [Inserir Link para o Quadro no Jira]
+##  Autor
 
-Código-fonte: Início da fase de desenvolvimento previsto para as próximas etapas.
-
-Fluxo de Funcionamento (Pipeline de Dados)
-
-Gatilho de Hardware: O condutor aciona a ignição do veículo (Rádio/OBD-II emite sinal BLE).
-
-Captura (Mobile): A aplicação desperta em background e inicia o registro sequencial de coordenadas GPS.
-
-Validação (API): O servidor Flask recepciona os pacotes de dados, submetendo-os à validação GeoJSON via Pydantic.
-
-Persistência (Database): O MongoDB indexa a localização atualizada no mapeamento global.
-
-Análise e Processamento (Worker): No encerramento do ciclo diário, o sistema calcula a distância real percorrida e atualiza o "Score de Desgaste" do veículo.
-
-Alerta e Decisão (Dashboard): Veículos que atingem o limite técnico de desgaste são automaticamente sinalizados no painel gerencial como "Revisão Necessária".
-
-Autor
-
-Pedro Henrique Amaral da Mota
-
-LinkedIn
-
-GitHub
+**Pedro Henrique Amaral da Mota**
+*   [LinkedIn](https://www.linkedin.com/in/pedro-amaral-mota/)
+*   [GitHub](https://github.com/PedroHAMota)
